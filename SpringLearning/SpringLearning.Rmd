@@ -1,0 +1,263 @@
+---
+title: "Spring Learning"
+author: "Tao Zou"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r include=FALSE}
+library(knitr)
+library(kableExtra)
+
+setwd("D:/Java_workspace/SpringLearning/")
+```
+
+# Overview of Spring-boot
+## pom.xml
+- `<parent>...</parent>`: Specify the parent POM (Project Object Model) for the project.
+
+- `<groupId>...</groupId>`: Group identifier.
+
+- `<artifactId>...</artifactId>`: Artifact identifier.
+
+- `<version>...</version>`: Version number.
+
+- `<scope>...</scope>`: specify the scope of a dependency.
+
+  - `<scope>compile</scope>` (default): The dependency is available during compilation, testing and runtime.
+  
+  - `<scope>provided</scope>`: The dependency is availabel during compilation and testing.
+  
+  - `<scope>runtime</scope>`: The dependency is availabel during runtime and testing.
+  
+  - `<scope>test</scope>`: The dependency is only availabel at testing.
+
+**Spring boot version** is included in the POM of `<parent>...</parent>`.
+
+**Java version** is included in `<properties>...</properties>`.
+
+**Spring boot plugin** is included in `<build><plugins>...</plugins></build>`.
+
+## Boot-strap class (Or main class)
+`@SpringBootApplication` = `@SpringBootConfiguration` + `@EnableAutoConfiguration` + `ComponentScan`
+
+## Run Spring-boot project
+1. Package the whole project into .jar file and run it.
+
+```{bash eval=FALSE, include=TRUE}
+./mvnw package
+java -jar target/the_packaged_file_name.jar
+```
+
+2. Directly run it.
+```{bash eval=FALSE, include=TRUE}
+./mvnw spring-boot:run
+```
+
+
+# Spring MVC HTTP
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("注解", "经典用途"),
+  column2 = c('@GetMapping', '读取资源数据'),
+  column3 = c('@PostMapping', '创建资源'),
+  column4 = c('@PutMapping', '更新资源'),
+  column5 = c('@PatchMapping', '更新资源'),
+  column6 = c('@DeleteMapping', '删除资源'),
+  column7 = c('@RequestMapping', '通用请求处理')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+# Spring RESTful
+## Rest Controller
+```java
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import tacos.Taco;
+import tacos.data.TacoRepository;
+
+@RestController
+@RequestMapping(path = "/api/tacos", produces = "application/json")
+@CrossOrigin(origins = {"http://tacocloud:8080", "http://tacocloud.com"})
+public class TacoController {
+    private TacoRepository tacoRepository;
+
+    public TacoController(TacoRepository tacoRepository) {
+        this.tacoRepository = tacoRepository;
+    }
+
+    @GetMapping(params  = "recent")
+    public Iterable<Taco> recentTacos() {
+        PageRequest page = PageRequest.of(0, 12, Sort.by("createdAt").descending());
+        return tacoRepository.findAll(page).getContent();
+    }
+
+    @PostMapping(consumes = "application/json")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Taco postTaco(@RequestBody Taco taco) {
+        return tacoRepository.save(taco);
+    }
+    
+    @PutMapping(path = "/{orderId}", consumes = "application/json")
+    public TacoOrder putOrder(@PathVariable("orderId") Long orderId, @RequestBody TacoOrder order) {
+      order.setId(orderId);
+      return tacoRepository.save(order);
+    }
+
+    @PatchMapping(path = "/{order}", consumes = "application/json")
+    public TacoOrder patchOrder(@PathVariable("orderId") Long orderId, @RequestBody TacoOrder patch) {
+      TacoOrder order = tacoRepository.findById(orderId).get();
+      if (patch.getDeliveryName() != null) {
+        order.setDeliveryName(patch.getDeliveryName());
+      }
+    }
+
+    @DeleteMapping("/{orderId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOrder(@PathVariable("orderId") Long orderId) {
+        try {
+            tacoRepository.deleteById(orderId);
+        } catch (EmptyResultDataAccessException e) {}
+    }
+}
+```
+
+`@RestController`注解可能相当于`@Controller` + `@ResponseBody`的作用。它除了有Controller的作用之外，还要求其类中所定义的方法都要把返回值写入响应体。
+
+`@RequestMapping(path = "/api/tacos", produces = "application/json")`中的`path="/api/tacos"`定义了客户端为访问类中的方法所必须的请求头；`produces="application/json"`限定了类中方法的返回响应体应该是json格式。
+
+`@CrossOrigin`
+
+### public Iterable<Taco> recentTacos()部分
+
+**从服务器端检索数据**。
+
+当我使用`curl localhost:8080/api/tacos?recent`时，会得到返回的json格式内容。
+
+### public Taco postTaco(@RequestBody Taco taco)部分
+
+**发送数据到服务器端**。
+
+`postTaco()`方法会处理对`/api/tacos`的POST请求。`consumes = "application/json"`意味着请求的输入需要为json格式文件。
+
+`@RequestBody Taco taco`请求体中的json被绑定到参数*taco*上。
+
+如果我的*taco*实体由[Taco.java](code/Taco.java)和[Ingredient.java](code/Ingredient.java)定义。则相应的json格式文件应为：
+
+```json
+{
+  "name": "Super Veggie Taco",
+  "ingredients": [
+    {
+      "id": "1",
+      "name": "Flour Tortilla",
+      "type": "WRAP"
+    },
+    {
+      "id": "2",
+      "name": "Grilled Peppers",
+      "type": "VEGGIES"
+    }
+  ]
+}
+```
+通过命令行发送该POST请求（目前还未验证过下述代码的可行性）：
+
+```bash
+curl -X POST http://localhost:8080/api/tacos \
+    -H "Content-Type: application/json" \
+    -d '{"name": "Super Veggie Taco", "ingredients": [{"id": "1", "name": "Flour Tortilla", "type": "WRAP"}, {"id": "2", "name": "Grilled Peppers", type": "VEGGIES"}]}'
+```
+
+
+`@ResponseStatus(HttpStatus.CREATED)`将请求成功且成功创建了一个资源的HTTP状态201传递给客户端。
+
+### public TacoOrder putOrder(@PathVariable("orderId") Long orderId, @RequestBody TacoOrder order) 部分
+
+### public TacoOrder patchOrder(@PathVariable("orderId") Long orderId, @RequestBody TacoOrder patch) 部分
+
+### public void deleteOrder(@PathVariable("orderId") Long orderId)部分
+
+**从服务器端删除数据**。
+
+`@ResponseStatus(HttpStatus.NO_CONTENT)`请求成功且没有资源内容的HTTP状态码为204。
+
+## Rest Data
+### GET存储库
+Rest Data是用来暴露存储库API的。要完成API的暴露，需要设置以下两步。
+
+1. 在pom.xml中添加依赖：
+
+```{bash eval=FALSE, include=TRUE}
+<dependency>
+	<groupId>org.springframework.boot</groupId>
+	<artifactId>spring-boot-starter-data-rest</artifactId>
+</dependency>
+```
+
+2. 在目标存储库上添加注解：（例如）
+
+```{java}
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+
+@RepositoryRestResource(path = "myqueries")
+public interface MyQueryRepository extends PagingAndSortingRepository<MyQuery, Long> {
+    
+}
+```
+
+之后就可以通过命令行`curl "localhost:8080/myqueries"`返回存储库内容了。
+
+调整上述API：在`src\main\resources\application.properties`中添加下述代码后即可通过新的API`curl "localhost:8080/repo-api/myqueries"`访问存储库内容。
+
+```{bash eval=FALSE, include=TRUE}
+spring.data.rest.base-path=/repo-api
+```
+
+### POST新数据
+（下面的过程还没有验证过，可能因为我的项目Spring Security默认启用了CSRF保护）
+
+在目标位置创建一个mydata.json文件：
+
+```json
+{
+  "question": "How many girls are there",
+  "predictedSQL": "SELECT COUNT(sex) WHERE sex='f';",
+  "visPattern": "a2",
+  "dbPath": "b2",
+  "dbName": "c2"
+}
+```
+
+然后使用下述命令行POST数据：
+
+```{bash eval=FALSE, include=TRUE}
+curl -X POST -H "Content-Type: application/json" -d @mydata.json "http://localhost:8080/repo-api/myqueries"
+```
+
+
+# 异步消息
+
+
+
+
+

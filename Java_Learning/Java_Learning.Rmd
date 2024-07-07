@@ -1,0 +1,77 @@
+---
+title: "Java Learning"
+author: "Tao Zou"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    highlight: tango
+---
+
+```{r include=FALSE}
+setwd("D:/Java_workspace/Java_Learning/")
+```
+
+# class literal
+```{java}
+public class Main {
+  public int a = 32;
+  public void mymethod() {System.out.println("Yes");}
+  
+  public static void main(String[] args) {
+    Class<Main> mainclass = Main.class;
+    System.out.println("The class name is: " + mainClass.getName());
+    System.out.println("If the class is interface: " + mainClass.isInterface());
+    
+    try {
+      System.out.println("Public field 'a': " + mainClass.getField("a"));
+    } catch (NoSuchFieldException e) {
+      System.out.println("File not found.");
+    } catch (SecurityException e) {
+      System.out.println("Access to the field is denied.");
+    }
+    try {
+      System.out.println("Public method 'mymethod': " + mainClass.getMethod("mymethod"));
+    } catch (NoSuchMethodException e) {
+      System.out.println("Method not found.");
+    } catch (SecurityException e) {
+      System.out.println("Access to the method is denied.")
+    }
+  }
+}
+```
+
+# record
+`record` is a special `class`. In the code below, `id` and `content` will be \<private\> and \<final\> fields. 
+
+```{java}
+// Main.java
+record Greeting(long id, String content) {}
+
+public class Main {
+    public static void main(String[] args) {
+        Greeting greeting = new Greeting(256, "Hello, World.");
+        System.out.println(greeting.id() + " " + greeting.content());
+    }
+}
+```
+
+# java.util
+## Optional
+```{java}
+import java.util.Optional
+
+// Create an Optional instance that contains a value. And print it.
+Optional<String> optioanlWithValue = Optional.of("Hello, World");
+optionalWithValue.ifPresent(System.out::println);
+
+// Create an empty Optional instance. And give it a value.
+Optional<String> emptyOptional = Optional.empty();
+String
+```
+
+
+
+
+
+
+

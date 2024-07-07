@@ -1,0 +1,235 @@
+---
+title: "Java Learning"
+author: "Tao Zou"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r include=FALSE}
+library(knitr)
+library(kableExtra)
+
+setwd("D:/Java_workspace/JavaLearning/")
+```
+
+# Data Type
+
+**String**
+
+```{java eval=FALSE, include=TRUE}
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+
+        String myString = "abcdefg";
+        System.out.println(myString.length());  // Show a the length of String data type.
+        char[] myChars = myString.toCharArray();  // Convert a String into a char array.
+        // String.valueOf(myChars) can convert char[] Array into a String.
+    }
+}
+```
+
+
+# Java Modifiers
+## Access Modifiers
+For **class**,
+
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("Modifier", "Description"),
+  column2 = c('public', 'The class is accessible by any other class'),
+  column3 = c('default', 'The class is only accessible by classes in the same package.')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+For **attribute**, **method**, **constructor**,
+
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("Modifier", "Description"),
+  column2 = c('public', 'The code is accessible for all classes.'),
+  column3 = c('protected', 'The code is accessible in the same package. And the code is accessible in the subclass.'),
+  column4 = c('default', 'The code is only accessible in the same package.'),
+  column5 = c('private', 'The code is only accessible within the declared class.')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+## Non-Access Modifier
+For **class**,
+
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("Modifier", "Description"),
+  column2 = c('final', 'The class cannot be inherited by other classes.'),
+  column3 = c('abstract', 'The class is used to be inherited. The class cannot be used to create objects.')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+For **attribute** and **method**,
+
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("Modifier", "Description"),
+  column2 = c('final', 'The attribute or method cannot be modified.'),
+  column3 = c('static', 'The attribute or method belongs to the class , rather than an object'),
+  column4 = c('abstract', 'Only be used on methods in an abstract class.'),
+  column5 = c('transient', ''),
+  column6 = c('synchronized', ''),
+  column7 = c('volatile', '')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+# interface
+**interface** is a special `abstract` class. Every attribute in it is treated as `public`, `static` and `final`; Every method in it is treated as `public` and `abstract`
+
+**Functional interface** can only contain one abstract method. For example:
+
+```java
+public interface MessageCreator {
+    Message createMessage(Session session) throws JMSException;
+}
+```
+
+And I can use Lambda expression to implement the abstract method in a functional interface. For example:
+
+```java
+MessageCreator messageCreator = session -> session.createObjectMessage();
+```
+
+
+# Common Used Class
+## Arrays
+**Arrays** like `String[]` or `int[]` is static array, the length of which is fixed.  
+
+```{java eval=FALSE, include=TRUE}
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+
+        String[] myArray = {"item1", "item2"};
+        System.out.println(myArray[0]);  // Show the first element of myArray.
+        System.out.println(myArray);  // Show the hash code of the memory address of an array object.
+        System.out.println(Arrays.toString(myArray));  // Show all of the items in String daya type of an Array.
+        System.out.println(myArray.length);  // Show the length of a String[]. 
+        
+    }
+}
+```
+
+```{java eval=FALSE, include=TRUE}
+import java.util.Arrays;
+
+public class Main {
+    public static void main(String[] args) {
+
+        char[] charArray = s.toCharArray();
+        Arrays.sort(charArray);  // Sort an Array.
+    }
+}
+```
+
+## ArrayList and LinkedList
+```{java eval=FALSE, include=TRUE}
+import java.util.ArrayList;
+
+public class Main {
+    public static void main(String[] args) {
+
+        ArrayList<String> myList = new ArrayList<String>();
+        myList.add("A");
+        myList.add("B");
+        myList.add("C");
+        System.out.println(myList.get(1));// "B"
+        myList.remove(0);
+    }
+}
+```
+
+`.remove()` method can remove an ArrayList's item both by index and by value. If the items in an ArrayList are `int` data type, and I want to remove the item (for example $5$) by its value, then I should use `.remove(Integer.valueOf(5))`. If I use  `.remove(5)`, the item with index of $5$ will be removed.
+
+**ArrayList** is based on dynamic array. **LinkedList** is based on linked structure. 
+
+Use **ArrayList** for storing and accessing data.
+
+Use **LinkedList** to manipulate data.
+
+## HashMap
+```{java eval=FALSE, include=TRUE}
+import java.util.HashMap;
+
+public class Main {
+    public static void main(String[] args) {
+        HashMap<int, String> myHashTable = new HashMap<int, String>();
+        myHashTable.put(0, "item1");
+        System.out.println(myHashTable.get(0));
+        myHashTable.remove(0);  // remove target item.
+        myHashTable.clear();  // remove all items.
+        myHashTable.keySet();  // java.util.HashMap$KeySet, used for loop through keys in a HashTable.
+        myHashTable.values();  // java.uitl.HashMap$Values, used for loop through values in a HashTable.
+        myHashTable.containsKey(0)  // to check if a key in a HashTable.
+    }
+}
+```
+
+## HashSet
+A HashSet is a collection of items where every item is unique.
+
+```{java eval=FALSE, include=TRUE}
+import java.util.HashSet;
+
+public class Main {
+    public static void main(String[] args) {
+        HashSet<String> myHashSet = new HashSet<String>();
+        myHashSet.add("item1");
+        myHashSet.add("item2");
+        myHashSet.contains("item3");  // check if "item3" in myHashSet.
+        myHashSet.remove("item2");
+        myHashSet.clear();
+        myHashSet.size();
+        // myHashSet1.euqals(myHashSet2)  check if two HashSets have same items.
+    }
+}
+```
+
+# Java Polymorphism
+When instantiating a subclass, I can declare the variable type as its parent class' name. But when doing this, I cannot use attributes and methods unique to the subclass. 
+
+```{java eval=FALSE, include=TRUE}
+public class PolymorphismExample {
+    public static void main(String[] args) {
+        Animal myAnimal = new Animal();
+        Animal myDog = new Dog();
+        Animal myCat = new Cat();
+
+        myAnimal.speak(); // Output: This animal speaks in its own way.
+        myDog.speak();    // Output: Dog barks.
+        myCat.speak();    // Output: Cat meows.
+        
+        Animal[] animals = {myAnimal, myDog, myCat};
+        for (Animal animal : animals) {
+            animal.speak(); // Call the speak method on each type of animal
+        }
+    }
+}
+```
+
+
+
+
+

@@ -7,7 +7,7 @@
 
         <meta name="author" content="Tao Zou" />
     
-        <meta name="date" content="2024-07-07" />
+        <meta name="date" content="2024-07-14" />
     
     <title>Spring Learning</title>
 
@@ -1828,13 +1828,22 @@ margin-left: 0 !important;
       Controller</a></li>
       <li><a href="#rest-data" id="toc-rest-data">Rest Data</a></li>
       </ul></li>
-      <li><a href="#异步消息" id="toc-异步消息">异步消息</a></li>
+      <li><a href="#jms异步消息" id="toc-jms异步消息">JMS异步消息</a>
+      <ul>
+      <li><a href="#引入依赖" id="toc-引入依赖">引入依赖</a></li>
+      <li><a href="#配置代理" id="toc-配置代理">配置代理</a></li>
+      <li><a href="#使用jms发送消息" id="toc-使用jms发送消息">使用JMS发送消息</a></li>
+      <li><a href="#使用jms接收消息pull-model" id="toc-使用jms接收消息pull-model">使用JMS接收消息（Pull
+      model）</a></li>
+      <li><a href="#使用jmslistener接收消息push-model" id="toc-使用jmslistener接收消息push-model">使用JMSListener接收消息（Push
+      model）</a></li>
+      </ul></li>
       </ul>
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Tao
 Zou</p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-07-07</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-07-14</p>
           </div>
    </div>
      
@@ -2116,8 +2125,335 @@ Security默认启用了CSRF保护）</p>
 </div>
 </div>
 </div>
-<div id="异步消息" class="section level1">
-<h1>异步消息</h1>
+<div id="jms异步消息" class="section level1">
+<h1>JMS异步消息</h1>
+<div id="引入依赖" class="section level2 tabset">
+<h2 class="tabset">引入依赖</h2>
+<p>Apache ActiveMQ Artemis 是 Apache ActiveMQ
+的更新版。在添加下述依赖后，Spring-boot会自动创建一个JmsTemplate的Bean。</p>
+<div id="artemis" class="section level3">
+<h3>Artemis</h3>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="op">&lt;</span>dependency<span class="op">&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="op">&lt;</span>groupId<span class="op">&gt;</span>org.springframework.boot<span class="op">&lt;</span>/groupId<span class="op">&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="op">&lt;</span>artifactId<span class="op">&gt;</span>spring-boot-starter-artemis<span class="op">&lt;</span>/artifactId<span class="op">&gt;</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="op">&lt;</span>/dependency<span class="op">&gt;</span></span></code></pre></div>
+</div>
+<div id="activemq" class="section level3">
+<h3>ActiveMQ</h3>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="op">&lt;</span>dependency<span class="op">&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="op">&lt;</span>groupId<span class="op">&gt;</span>org.springframework.boot<span class="op">&lt;</span>/groupId<span class="op">&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="op">&lt;</span>artifactId<span class="op">&gt;</span>spring-boot-starter-activemq<span class="op">&lt;</span>/artifactId<span class="op">&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="op">&lt;</span>/dependency<span class="op">&gt;</span></span></code></pre></div>
+</div>
+</div>
+<div id="配置代理" class="section level2 tabset">
+<h2 class="tabset">配置代理</h2>
+<p>代理的配置与引入的依赖相对应。</p>
+<div id="artemis-代理" class="section level3">
+<h3>Artemis 代理</h3>
+<p>在默认情况下，Spring会假定Artemis代理在localhost的61616端口运行。</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">spring</span><span class="kw">:</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="at">  </span><span class="fu">artemis</span><span class="kw">:</span></span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="at">    </span><span class="fu">host</span><span class="kw">:</span><span class="at"> artemis.tacocloud.com</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="at">    </span><span class="fu">port</span><span class="kw">:</span><span class="at"> </span><span class="dv">61616</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="at">    </span><span class="fu">user</span><span class="kw">:</span><span class="at"> tacoweb</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="at">    </span><span class="fu">password</span><span class="kw">:</span><span class="at"> l3tm31n</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="at">  </span><span class="fu">jms</span><span class="kw">:</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="at">    </span><span class="fu">template</span><span class="kw">:</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="at">      </span><span class="fu">default-destination</span><span class="kw">:</span><span class="at"> tacocloud.order.queue</span></span></code></pre></div>
+</div>
+<div id="activemq-代理" class="section level3">
+<h3>ActiveMQ 代理</h3>
+<div class="sourceCode" id="cb14"><pre class="sourceCode yml"><code class="sourceCode yaml"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">spring</span><span class="kw">:</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="at">  </span><span class="fu">activemq</span><span class="kw">:</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="at">    </span><span class="fu">broker-url</span><span class="kw">:</span><span class="at"> tcp://activemq.tacocloud.com</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="at">    </span><span class="fu">user</span><span class="kw">:</span><span class="at"> tacoweb</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="at">    </span><span class="fu">password</span><span class="kw">:</span><span class="at"> l3tm31n</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="at">    </span><span class="fu">in-memory</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="at">  </span><span class="fu">jms</span><span class="kw">:</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="at">    </span><span class="fu">template</span><span class="kw">:</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="at">      </span><span class="fu">default-destination</span><span class="kw">:</span><span class="at"> tacocloud.order.queue</span></span></code></pre></div>
+</div>
+</div>
+<div id="使用jms发送消息" class="section level2">
+<h2>使用JMS发送消息</h2>
+<div id="tacos.messaging" class="section level3 tabset">
+<h3 class="tabset">tacos.messaging</h3>
+<div id="jmsordermessagingservice.java" class="section level4">
+<h4>JmsOrderMessagingService.java</h4>
+<div class="sourceCode" id="cb15"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">messaging</span><span class="op">;</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">JMSException</span><span class="op">;</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">Message</span><span class="op">;</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">beans</span><span class="op">.</span><span class="im">factory</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Autowired</span><span class="op">;</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">core</span><span class="op">.</span><span class="im">JmsTemplate</span><span class="op">;</span></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">stereotype</span><span class="op">.</span><span class="im">Service</span><span class="op">;</span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="at">@Service</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> JmsOrderMessagingService <span class="kw">implements</span> OrderMessagingService <span class="op">{</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a>    <span class="kw">private</span> JmsTemplate jms<span class="op">;</span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a>        <span class="kw">public</span> <span class="fu">JmsOrderMessagingService</span><span class="op">(</span>JmsTemplate jms<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">jms</span> <span class="op">=</span> jms<span class="op">;</span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">sendOrder</span><span class="op">(</span>TacoOrder order<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a>        jms<span class="op">.</span><span class="fu">convertAndSend</span><span class="op">(</span><span class="st">&quot;tacocloud.order.queue&quot;</span><span class="op">,</span> order<span class="op">,</span></span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a>            <span class="kw">this</span><span class="op">::</span>addOrderSource<span class="op">);</span></span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a></span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a>    <span class="kw">private</span> Message <span class="fu">addOrderSource</span><span class="op">(</span>Message message<span class="op">)</span> <span class="kw">throws</span> JMSException <span class="op">{</span></span>
+<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a>        message<span class="op">.</span><span class="fu">setStringProperty</span><span class="op">(</span><span class="st">&quot;X_ORDER_SOURCE&quot;</span><span class="op">,</span> <span class="st">&quot;WEB&quot;</span><span class="op">);</span></span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a>        <span class="cf">return</span> message<span class="op">;</span></span>
+<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a></span>
+<span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>@Service</code>是一个标识服务<strong>类</strong>的注解，表示这个<strong>类</strong>是Spring管理的Bean，它是一种特殊的<code>@Component</code>注解。</p>
+<p><code>jms.convertAndSend()</code>方法：</p>
+<ol style="list-style-type: decimal">
+<li><p>对order进行转换：将<code>TacoOrder</code>的实例转化为json格式。转换器在<code>MessagingConfig.java</code>中声明为了Bean。</p></li>
+<li><p>对消息进行后处理：给消息增加了一个自定义头部。</p></li>
+<li><p>发送消息到目的地。</p></li>
+</ol>
+</div>
+<div id="messagingconfig.java" class="section level4">
+<h4>MessagingConfig.java</h4>
+<div class="sourceCode" id="cb16"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">messaging</span><span class="op">;</span></span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">HashMap</span><span class="op">;</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">Map</span><span class="op">;</span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">Destination</span><span class="op">;</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">apache</span><span class="op">.</span><span class="im">activemq</span><span class="op">.</span><span class="im">artemis</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">client</span><span class="op">.</span><span class="im">ActiveMQQueue</span><span class="op">;</span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Bean</span><span class="op">;</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Configuration</span><span class="op">;</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">support</span><span class="op">.</span><span class="im">converter</span><span class="op">.</span><span class="im">MappingJackson2MessageConverter</span><span class="op">;</span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="at">@Configuration</span></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> MessagingConfig <span class="op">{</span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a>    <span class="at">@Bean</span></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a>    <span class="kw">public</span> MappingJackson2MessageConverter <span class="fu">messageConverter</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a>        MappingJackson2MessageConverter messageConverter <span class="op">=</span></span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a>                                <span class="kw">new</span> <span class="fu">MappingJackson2MessageConverter</span><span class="op">();</span></span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a>        messageConverter<span class="op">.</span><span class="fu">setTypeIdPropertyName</span><span class="op">(</span><span class="st">&quot;_typeId&quot;</span><span class="op">);</span></span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a>        <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Class</span><span class="op">&lt;?&gt;&gt;</span> typeIdMappings <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Class</span><span class="op">&lt;?&gt;&gt;();</span></span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a>        typeIdMappings<span class="op">.</span><span class="fu">put</span><span class="op">(</span><span class="st">&quot;order&quot;</span><span class="op">,</span> TacoOrder<span class="op">.</span><span class="fu">class</span><span class="op">);</span></span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a>        messageConverter<span class="op">.</span><span class="fu">setTypeIdMappings</span><span class="op">(</span>typeIdMappings<span class="op">);</span></span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a></span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a>        <span class="cf">return</span> messageConverter<span class="op">;</span></span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a></span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a>    <span class="at">@Bean</span></span>
+<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a>    <span class="kw">public</span> <span class="bu">Destination</span> <span class="fu">orderQueue</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">new</span> <span class="fu">ActiveMQQueue</span><span class="op">(</span><span class="st">&quot;tacocloud.order.queue&quot;</span><span class="op">);</span></span>
+<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a></span>
+<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>上述代码将<strong>消息转换器</strong>和<strong>目的地</strong>都声明为了Bean。</p>
+<p>在<strong>消息转换器</strong>中，<code>setTypeIdPropertyName(&quot;_typeId&quot;)</code>决定了待转换对象的全限定类名存储在json文件中的”_typeId”目录下。<code>setTypeIdMappings(typeIdMappings)</code>建立了<code>String</code>到全限定类名的映射，这样可以提高发送端和接收端消息传递的灵活性。</p>
+</div>
+<div id="ordermessagingservice.java" class="section level4">
+<h4>OrderMessagingService.java</h4>
+<div class="sourceCode" id="cb17"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">messaging</span><span class="op">;</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="kw">public</span> <span class="kw">interface</span> OrderMessagingService <span class="op">{</span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>  <span class="dt">void</span> <span class="fu">sendOrder</span><span class="op">(</span>TacoOrder order<span class="op">);</span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>  </span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="使用jms接收消息pull-model" class="section level2">
+<h2>使用JMS接收消息（Pull model）</h2>
+<div id="tacos.kitchen" class="section level3 tabset">
+<h3 class="tabset">tacos.kitchen</h3>
+<div id="jmsorderreceiver.java原始message" class="section level4">
+<h4>JmsOrderReceiver.java(原始Message)</h4>
+<p>这里能接收到消息的原始Message。</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">messaging</span><span class="op">.</span><span class="im">jms</span><span class="op">;</span></span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">javax</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">Message</span><span class="op">;</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Profile</span><span class="op">;</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">core</span><span class="op">.</span><span class="im">JmsTemplate</span><span class="op">;</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">stereotype</span><span class="op">.</span><span class="im">Component</span><span class="op">;</span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">OrderReceiver</span><span class="op">;</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="at">@Profile</span><span class="op">(</span><span class="st">&quot;jms-template&quot;</span><span class="op">)</span></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="at">@Component</span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> JmsOrderReceiver <span class="kw">implements</span> OrderReceiver <span class="op">{</span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>    <span class="kw">private</span> JmsTemplate jms<span class="op">;</span></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>    <span class="kw">private</span> MessageConverter converter<span class="op">;</span></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a>    <span class="kw">public</span> <span class="fu">JmsOrderReceiver</span><span class="op">(</span>JmsTemplate jms<span class="op">,</span> MessageConverter converter<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">jms</span> <span class="op">=</span> jms<span class="op">;</span></span>
+<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">converter</span> <span class="op">=</span> converter<span class="op">;</span></span>
+<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a></span>
+<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a>    <span class="kw">public</span> TacoOrder <span class="fu">receiveOrder</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a>        Message message <span class="op">=</span> jms<span class="op">.</span><span class="fu">receive</span><span class="op">(</span><span class="st">&quot;tacocloud.order.queue&quot;</span><span class="op">);</span></span>
+<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">(</span>TacoOrder<span class="op">)</span> converter<span class="op">.</span><span class="fu">fromMessage</span><span class="op">(</span>message<span class="op">);</span></span>
+<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a></span>
+<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="jmsorderreceiver.java仅载荷" class="section level4">
+<h4>JmsOrderReceiver.java(仅载荷)</h4>
+<p>这里仅接收到消息的载荷。</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">messaging</span><span class="op">.</span><span class="im">jms</span><span class="op">;</span></span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Profile</span><span class="op">;</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">core</span><span class="op">.</span><span class="im">JmsTemplate</span><span class="op">;</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">stereotype</span><span class="op">.</span><span class="im">Component</span><span class="op">;</span></span>
+<span id="cb19-6"><a href="#cb19-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb19-7"><a href="#cb19-7" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">OrderReceiver</span><span class="op">;</span></span>
+<span id="cb19-8"><a href="#cb19-8" tabindex="-1"></a></span>
+<span id="cb19-9"><a href="#cb19-9" tabindex="-1"></a><span class="at">@Profile</span><span class="op">(</span><span class="st">&quot;jms-template&quot;</span><span class="op">)</span></span>
+<span id="cb19-10"><a href="#cb19-10" tabindex="-1"></a><span class="at">@Component</span></span>
+<span id="cb19-11"><a href="#cb19-11" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> JmsOrderReceiver <span class="kw">implements</span> OrderReceiver <span class="op">{</span></span>
+<span id="cb19-12"><a href="#cb19-12" tabindex="-1"></a></span>
+<span id="cb19-13"><a href="#cb19-13" tabindex="-1"></a>    <span class="kw">private</span> JmsTemplate jms<span class="op">;</span></span>
+<span id="cb19-14"><a href="#cb19-14" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" tabindex="-1"></a>    <span class="kw">public</span> <span class="fu">JmsOrderReceiver</span><span class="op">(</span>JmsTemplate jms<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb19-16"><a href="#cb19-16" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">jms</span> <span class="op">=</span> jms<span class="op">;</span></span>
+<span id="cb19-17"><a href="#cb19-17" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb19-18"><a href="#cb19-18" tabindex="-1"></a></span>
+<span id="cb19-19"><a href="#cb19-19" tabindex="-1"></a>    <span class="at">@Override</span></span>
+<span id="cb19-20"><a href="#cb19-20" tabindex="-1"></a>    <span class="kw">public</span> TacoOrder <span class="fu">receiveOrder</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb19-21"><a href="#cb19-21" tabindex="-1"></a>        <span class="cf">return</span> <span class="op">(</span>TacoOrder<span class="op">)</span> jms<span class="op">.</span><span class="fu">receiveAndConvert</span><span class="op">(</span><span class="st">&quot;tacocloud.order.queue&quot;</span><span class="op">);</span></span>
+<span id="cb19-22"><a href="#cb19-22" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb19-23"><a href="#cb19-23" tabindex="-1"></a></span>
+<span id="cb19-24"><a href="#cb19-24" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="messagingconfig.java-1" class="section level4">
+<h4>MessagingConfig.java</h4>
+<div class="sourceCode" id="cb20"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">messaging</span><span class="op">.</span><span class="im">jms</span><span class="op">;</span></span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">HashMap</span><span class="op">;</span></span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">Map</span><span class="op">;</span></span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Bean</span><span class="op">;</span></span>
+<span id="cb20-7"><a href="#cb20-7" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Configuration</span><span class="op">;</span></span>
+<span id="cb20-8"><a href="#cb20-8" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Profile</span><span class="op">;</span></span>
+<span id="cb20-9"><a href="#cb20-9" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">support</span><span class="op">.</span><span class="im">converter</span><span class="op">.</span><span class="im">MappingJackson2MessageConverter</span><span class="op">;</span></span>
+<span id="cb20-10"><a href="#cb20-10" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb20-12"><a href="#cb20-12" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" tabindex="-1"></a><span class="at">@Profile</span><span class="op">({</span><span class="st">&quot;jms-template&quot;</span><span class="op">,</span> <span class="st">&quot;jms-listener&quot;</span><span class="op">})</span></span>
+<span id="cb20-14"><a href="#cb20-14" tabindex="-1"></a><span class="at">@Configuration</span></span>
+<span id="cb20-15"><a href="#cb20-15" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> MessagingConfig <span class="op">{</span></span>
+<span id="cb20-16"><a href="#cb20-16" tabindex="-1"></a></span>
+<span id="cb20-17"><a href="#cb20-17" tabindex="-1"></a>    <span class="at">@Bean</span></span>
+<span id="cb20-18"><a href="#cb20-18" tabindex="-1"></a>    <span class="kw">public</span> MappingJackson2MessageConverter <span class="fu">messageConverter</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb20-19"><a href="#cb20-19" tabindex="-1"></a>        MappingJackson2MessageConverter messageConverter <span class="op">=</span></span>
+<span id="cb20-20"><a href="#cb20-20" tabindex="-1"></a>                                <span class="kw">new</span> <span class="fu">MappingJackson2MessageConverter</span><span class="op">();</span></span>
+<span id="cb20-21"><a href="#cb20-21" tabindex="-1"></a>        messageConverter<span class="op">.</span><span class="fu">setTypeIdPropertyName</span><span class="op">(</span><span class="st">&quot;_typeId&quot;</span><span class="op">);</span></span>
+<span id="cb20-22"><a href="#cb20-22" tabindex="-1"></a></span>
+<span id="cb20-23"><a href="#cb20-23" tabindex="-1"></a>        <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Class</span><span class="op">&lt;?&gt;&gt;</span> typeIdMappings <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Class</span><span class="op">&lt;?&gt;&gt;();</span></span>
+<span id="cb20-24"><a href="#cb20-24" tabindex="-1"></a>        typeIdMappings<span class="op">.</span><span class="fu">put</span><span class="op">(</span><span class="st">&quot;order&quot;</span><span class="op">,</span> TacoOrder<span class="op">.</span><span class="fu">class</span><span class="op">);</span></span>
+<span id="cb20-25"><a href="#cb20-25" tabindex="-1"></a>        messageConverter<span class="op">.</span><span class="fu">setTypeIdMappings</span><span class="op">(</span>typeIdMappings<span class="op">);</span></span>
+<span id="cb20-26"><a href="#cb20-26" tabindex="-1"></a></span>
+<span id="cb20-27"><a href="#cb20-27" tabindex="-1"></a>        <span class="cf">return</span> messageConverter<span class="op">;</span></span>
+<span id="cb20-28"><a href="#cb20-28" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb20-29"><a href="#cb20-29" tabindex="-1"></a></span>
+<span id="cb20-30"><a href="#cb20-30" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>@Profile({&quot;jms-template&quot;, &quot;jms-listener&quot;})</code>表示当Spring应用程序运行时的活动配置文件包含”jms-template”或”jms-listener”中的任意一个时，MessagingConfig类中的配置才会被加载和生效。</p>
+<p>可以通过下述命令行运行Spring时激活该Profile:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a><span class="ex">java</span> <span class="at">-jar</span> yourapp.jar <span class="at">--spring.profiles.active</span><span class="op">=</span>jms-template</span></code></pre></div>
+<p>此外，我觉得上面代码再配置一个MessagingConfig多余，因为它里面声明为Bean的消息转换器在消息发送器的MessageConfig里面已经声明过了。</p>
+</div>
+<div id="orderreceiver.java" class="section level4">
+<h4>OrderReceiver.java</h4>
+<div class="sourceCode" id="cb22"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">;</span></span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" tabindex="-1"></a><span class="kw">public</span> <span class="kw">interface</span> OrderReceiver <span class="op">{</span></span>
+<span id="cb22-6"><a href="#cb22-6" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" tabindex="-1"></a>    TacoOrder <span class="fu">receiveOrder</span><span class="op">();</span></span>
+<span id="cb22-8"><a href="#cb22-8" tabindex="-1"></a></span>
+<span id="cb22-9"><a href="#cb22-9" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="使用jmslistener接收消息push-model" class="section level2">
+<h2>使用JMSListener接收消息（Push model）</h2>
+<div id="tacos.kitchen-1" class="section level3 tabset">
+<h3 class="tabset">tacos.kitchen</h3>
+<div id="orderlistener.java" class="section level4">
+<h4>OrderListener.java</h4>
+<div class="sourceCode" id="cb23"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">messaging</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">listener</span><span class="op">;</span></span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">beans</span><span class="op">.</span><span class="im">factory</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Autowired</span><span class="op">;</span></span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">context</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">Profile</span><span class="op">;</span></span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">jms</span><span class="op">.</span><span class="im">annotation</span><span class="op">.</span><span class="im">JmsListener</span><span class="op">;</span></span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">stereotype</span><span class="op">.</span><span class="im">Component</span><span class="op">;</span></span>
+<span id="cb23-7"><a href="#cb23-7" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb23-9"><a href="#cb23-9" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">.</span><span class="im">KitchenUI</span><span class="op">;</span></span>
+<span id="cb23-10"><a href="#cb23-10" tabindex="-1"></a></span>
+<span id="cb23-11"><a href="#cb23-11" tabindex="-1"></a><span class="at">@Profile</span><span class="op">(</span><span class="st">&quot;jms-listener&quot;</span><span class="op">)</span></span>
+<span id="cb23-12"><a href="#cb23-12" tabindex="-1"></a><span class="at">@Component</span></span>
+<span id="cb23-13"><a href="#cb23-13" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> OrderListener <span class="op">{</span></span>
+<span id="cb23-14"><a href="#cb23-14" tabindex="-1"></a>  </span>
+<span id="cb23-15"><a href="#cb23-15" tabindex="-1"></a>    <span class="kw">private</span> KitchenUI ui<span class="op">;</span></span>
+<span id="cb23-16"><a href="#cb23-16" tabindex="-1"></a></span>
+<span id="cb23-17"><a href="#cb23-17" tabindex="-1"></a>    <span class="at">@Autowired</span></span>
+<span id="cb23-18"><a href="#cb23-18" tabindex="-1"></a>    <span class="kw">public</span> <span class="fu">OrderListener</span><span class="op">(</span>KitchenUI ui<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb23-19"><a href="#cb23-19" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">ui</span> <span class="op">=</span> ui<span class="op">;</span></span>
+<span id="cb23-20"><a href="#cb23-20" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb23-21"><a href="#cb23-21" tabindex="-1"></a></span>
+<span id="cb23-22"><a href="#cb23-22" tabindex="-1"></a>    <span class="at">@JmsListener</span><span class="op">(</span>destination <span class="op">=</span> <span class="st">&quot;tacocloud.order.queue&quot;</span><span class="op">)</span></span>
+<span id="cb23-23"><a href="#cb23-23" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">receiveOrder</span><span class="op">(</span>TacoOrder order<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb23-24"><a href="#cb23-24" tabindex="-1"></a>        ui<span class="op">.</span><span class="fu">displayOrder</span><span class="op">(</span>order<span class="op">);</span></span>
+<span id="cb23-25"><a href="#cb23-25" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb23-26"><a href="#cb23-26" tabindex="-1"></a>  </span>
+<span id="cb23-27"><a href="#cb23-27" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div id="kitchenui.java" class="section level4">
+<h4>KitchenUI.java</h4>
+<div class="sourceCode" id="cb24"><pre class="sourceCode java"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="kw">package</span><span class="im"> tacos</span><span class="op">.</span><span class="im">kitchen</span><span class="op">;</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a></span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">springframework</span><span class="op">.</span><span class="im">stereotype</span><span class="op">.</span><span class="im">Component</span><span class="op">;</span></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a></span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a><span class="kw">import</span> <span class="im">lombok</span><span class="op">.</span><span class="im">extern</span><span class="op">.</span><span class="im">slf4j</span><span class="op">.</span><span class="im">Slf4j</span><span class="op">;</span></span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a><span class="kw">import</span> <span class="im">tacos</span><span class="op">.</span><span class="im">TacoOrder</span><span class="op">;</span></span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a></span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a><span class="at">@Component</span></span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a><span class="at">@Slf4j</span></span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> KitchenUI <span class="op">{</span></span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">displayOrder</span><span class="op">(</span>TacoOrder order<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb24-13"><a href="#cb24-13" tabindex="-1"></a>        <span class="co">// </span><span class="al">TODO</span><span class="co">: Beef this up to do more than just log the received taco.</span></span>
+<span id="cb24-14"><a href="#cb24-14" tabindex="-1"></a>        <span class="co">//       To display it in some sort of UI.</span></span>
+<span id="cb24-15"><a href="#cb24-15" tabindex="-1"></a>        log<span class="op">.</span><span class="fu">info</span><span class="op">(</span><span class="st">&quot;RECEIVED ORDER:  &quot;</span> <span class="op">+</span> order<span class="op">);</span></span>
+<span id="cb24-16"><a href="#cb24-16" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb24-17"><a href="#cb24-17" tabindex="-1"></a>  </span>
+<span id="cb24-18"><a href="#cb24-18" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><code>@Component</code>是将<strong>类</strong>标记为Spring
+Bean的通用注解，其派生注解有<code>@Service</code>，<code>@Controller</code>，<code>@Repository</code>。</p>
+<p><code>@Bean</code>通常用于注解配置类<code>@Configuration</code>中的方法，它适用于更精细化地对Bean进行创建和控制。</p>
+</div>
+</div>
+</div>
 </div>
 </div>
 

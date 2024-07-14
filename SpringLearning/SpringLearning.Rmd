@@ -255,7 +255,366 @@ curl -X POST -H "Content-Type: application/json" -d @mydata.json "http://localho
 ```
 
 
-# 异步消息
+
+# JMS异步消息
+## 引入依赖 {.tabset}
+Apache ActiveMQ Artemis 是 Apache ActiveMQ 的更新版。在添加下述依赖后，Spring-boot会自动创建一个JmsTemplate的Bean。
+
+### Artemis
+```bash
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-artemis</artifactId>
+</dependency>
+```
+
+### ActiveMQ
+```bash
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-activemq</artifactId>
+</dependency>
+```
+
+## 配置代理 {.tabset}
+代理的配置与引入的依赖相对应。
+
+### Artemis 代理
+在默认情况下，Spring会假定Artemis代理在localhost的61616端口运行。
+
+```yml
+spring:
+  artemis:
+    host: artemis.tacocloud.com
+    port: 61616
+    user: tacoweb
+    password: l3tm31n
+  jms:
+    template:
+      default-destination: tacocloud.order.queue
+```
+
+### ActiveMQ 代理
+```yml
+spring:
+  activemq:
+    broker-url: tcp://activemq.tacocloud.com
+    user: tacoweb
+    password: l3tm31n
+    in-memory: false
+  jms:
+    template:
+      default-destination: tacocloud.order.queue
+```
+
+## 使用JMS发送消息
+### tacos.messaging {.tabset}
+#### JmsOrderMessagingService.java
+```java
+package tacos.messaging;
+
+import javax.jms.JMSException;
+import javax.jms.Message;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Service;
+
+import tacos.TacoOrder;
+
+@Service
+public class JmsOrderMessagingService implements OrderMessagingService {
+
+	private JmsTemplate jms;
+
+	@Autowired
+		public JmsOrderMessagingService(JmsTemplate jms) {
+		this.jms = jms;
+	}
+
+	@Override
+	public void sendOrder(TacoOrder order) {
+		jms.convertAndSend("tacocloud.order.queue", order,
+			this::addOrderSource);
+	}
+
+	private Message addOrderSource(Message message) throws JMSException {
+		message.setStringProperty("X_ORDER_SOURCE", "WEB");
+		return message;
+	}
+
+}
+```
+
+`@Service`是一个标识服务**类**的注解，表示这个**类**是Spring管理的Bean，它是一种特殊的`@Component`注解。
+
+`jms.convertAndSend()`方法：
+
+  1. 对order进行转换：将`TacoOrder`的实例转化为json格式。转换器在`MessagingConfig.java`中声明为了Bean。
+  
+  2. 对消息进行后处理：给消息增加了一个自定义头部。
+  
+  3. 发送消息到目的地。
+
+#### MessagingConfig.java
+```java
+package tacos.messaging;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jms.Destination;
+
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
+
+import tacos.TacoOrder;
+
+@Configuration
+public class MessagingConfig {
+
+	@Bean
+	public MappingJackson2MessageConverter messageConverter() {
+		MappingJackson2MessageConverter messageConverter =
+								new MappingJackson2MessageConverter();
+		messageConverter.setTypeIdPropertyName("_typeId");
+
+		Map<String, Class<?>> typeIdMappings = new HashMap<String, Class<?>>();
+		typeIdMappings.put("order", TacoOrder.class);
+		messageConverter.setTypeIdMappings(typeIdMappings);
+
+		return messageConverter;
+	}
+
+	@Bean
+	public Destination orderQueue() {
+		return new ActiveMQQueue("tacocloud.order.queue");
+	}
+
+}
+```
+
+上述代码将**消息转换器**和**目的地**都声明为了Bean。
+
+在**消息转换器**中，`setTypeIdPropertyName("_typeId")`决定了待转换对象的全限定类名存储在json文件中的"_typeId"目录下。`setTypeIdMappings(typeIdMappings)`建立了`String`到全限定类名的映射，这样可以提高发送端和接收端消息传递的灵活性。
+
+
+#### OrderMessagingService.java
+```java
+package tacos.messaging;
+
+import tacos.TacoOrder;
+
+public interface OrderMessagingService {
+
+  void sendOrder(TacoOrder order);
+  
+}
+```
+
+## 使用JMS接收消息（Pull model）
+### tacos.kitchen {.tabset}
+#### JmsOrderReceiver.java(原始Message)
+这里能接收到消息的原始Message。
+
+```java
+package tacos.kitchen.messaging.jms;
+
+import javax.jms.Message;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
+import tacos.TacoOrder;
+import tacos.kitchen.OrderReceiver;
+
+@Profile("jms-template")
+@Component
+public class JmsOrderReceiver implements OrderReceiver {
+
+	private JmsTemplate jms;
+	private MessageConverter converter;
+
+	@Autowired
+	public JmsOrderReceiver(JmsTemplate jms, MessageConverter converter) {
+		this.jms = jms;
+		this.converter = converter;
+	}
+
+	@Override
+	public TacoOrder receiveOrder() {
+		Message message = jms.receive("tacocloud.order.queue");
+		return (TacoOrder) converter.fromMessage(message);
+	}
+
+}
+```
+
+#### JmsOrderReceiver.java(仅载荷)
+这里仅接收到消息的载荷。
+
+```java
+package tacos.kitchen.messaging.jms;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
+import tacos.TacoOrder;
+import tacos.kitchen.OrderReceiver;
+
+@Profile("jms-template")
+@Component
+public class JmsOrderReceiver implements OrderReceiver {
+
+	private JmsTemplate jms;
+
+	public JmsOrderReceiver(JmsTemplate jms) {
+		this.jms = jms;
+	}
+
+	@Override
+	public TacoOrder receiveOrder() {
+		return (TacoOrder) jms.receiveAndConvert("tacocloud.order.queue");
+	}
+
+}
+```
+
+
+
+#### MessagingConfig.java
+```java
+package tacos.kitchen.messaging.jms;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
+
+import tacos.TacoOrder;
+
+@Profile({"jms-template", "jms-listener"})
+@Configuration
+public class MessagingConfig {
+
+	@Bean
+	public MappingJackson2MessageConverter messageConverter() {
+		MappingJackson2MessageConverter messageConverter =
+								new MappingJackson2MessageConverter();
+		messageConverter.setTypeIdPropertyName("_typeId");
+
+		Map<String, Class<?>> typeIdMappings = new HashMap<String, Class<?>>();
+		typeIdMappings.put("order", TacoOrder.class);
+		messageConverter.setTypeIdMappings(typeIdMappings);
+
+		return messageConverter;
+	}
+
+}
+```
+
+`@Profile({"jms-template", "jms-listener"})`表示当Spring应用程序运行时的活动配置文件包含"jms-template"或"jms-listener"中的任意一个时，MessagingConfig类中的配置才会被加载和生效。
+
+可以通过下述命令行运行Spring时激活该Profile:
+
+```bash
+java -jar yourapp.jar --spring.profiles.active=jms-template
+```
+
+此外，我觉得上面代码再配置一个MessagingConfig多余，因为它里面声明为Bean的消息转换器在消息发送器的MessageConfig里面已经声明过了。
+
+#### OrderReceiver.java
+```java
+package tacos.kitchen;
+
+import tacos.TacoOrder;
+
+public interface OrderReceiver {
+
+	TacoOrder receiveOrder();
+
+}
+```
+
+## 使用JMSListener接收消息（Push model）
+### tacos.kitchen {.tabset}
+#### OrderListener.java
+```java
+package tacos.kitchen.messaging.jms.listener;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.stereotype.Component;
+
+import tacos.TacoOrder;
+import tacos.kitchen.KitchenUI;
+
+@Profile("jms-listener")
+@Component
+public class OrderListener {
+  
+	private KitchenUI ui;
+
+	@Autowired
+	public OrderListener(KitchenUI ui) {
+		this.ui = ui;
+	}
+
+	@JmsListener(destination = "tacocloud.order.queue")
+	public void receiveOrder(TacoOrder order) {
+		ui.displayOrder(order);
+	}
+  
+}
+```
+
+#### KitchenUI.java
+
+```java
+package tacos.kitchen;
+
+import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
+import tacos.TacoOrder;
+
+@Component
+@Slf4j
+public class KitchenUI {
+
+	public void displayOrder(TacoOrder order) {
+		// TODO: Beef this up to do more than just log the received taco.
+		//       To display it in some sort of UI.
+		log.info("RECEIVED ORDER:  " + order);
+	}
+  
+}
+```
+
+`@Component`是将**类**标记为Spring Bean的通用注解，其派生注解有`@Service`，`@Controller`，`@Repository`。
+
+`@Bean`通常用于注解配置类`@Configuration`中的方法，它适用于更精细化地对Bean进行创建和控制。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

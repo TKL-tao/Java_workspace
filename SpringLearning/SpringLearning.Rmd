@@ -261,7 +261,7 @@ curl -X POST -H "Content-Type: application/json" -d @mydata.json "http://localho
 Apache ActiveMQ Artemis 是 Apache ActiveMQ 的更新版。在添加下述依赖后，Spring-boot会自动创建一个JmsTemplate的Bean。
 
 ### Artemis
-```bash
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-artemis</artifactId>
@@ -269,7 +269,7 @@ Apache ActiveMQ Artemis 是 Apache ActiveMQ 的更新版。在添加下述依赖
 ```
 
 ### ActiveMQ
-```bash
+```xml
 <dependency>
   <groupId>org.springframework.boot</groupId>
   <artifactId>spring-boot-starter-activemq</artifactId>
@@ -574,6 +574,8 @@ public class OrderListener {
 }
 ```
 
+`@JmsListener`会监听目的地的消息。当消息到达时，`receiveOrder()`方法会被自动调用，消息载荷会充当参数order
+
 #### KitchenUI.java
 
 ```java
@@ -601,9 +603,20 @@ public class KitchenUI {
 
 `@Bean`通常用于注解配置类`@Configuration`中的方法，它适用于更精细化地对Bean进行创建和控制。
 
+# Kafka异步消息
+[Apache Kafka Tutorials](https://kafka.apache.org/documentation/)
 
+先启动ZooKeeper再启动Kafka。
 
+## 添加Kafka依赖
+```xml
+<dependency>
+  <groupId>org.springframework.kafka</groupId>
+  <artifactId>spring-kafka</artifactId>
+</dependency>
+```
 
+## 配置代理
 
 
 

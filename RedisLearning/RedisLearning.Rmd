@@ -1,0 +1,102 @@
+---
+title: "Redis Learning"
+author: "Tao Zou"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r include=FALSE}
+library(knitr)
+library(kableExtra)
+
+setwd("D:/Java_workspace/RedisLearning/")
+```
+
+# Redis准备
+## Redis安装
+```bash
+wget http://download.redis.io/releases/redis-4.0.10.tar.gz
+```
+
+在Ubantu上安装`wget`。
+
+```bash
+sudo apt-get update
+sudo apt-get install wget
+```
+
+`sudo`是超级用户权限。
+
+在`apt-get update`中，`apt-get`是Ubantu的包管理工具，`update`会从所有的配置源下载包的最新列表，让系统知道目前可用的版本。
+
+`wget`是Ubantu的下载工具。
+
+解压文件
+
+```bash
+tar -zxvf redis-4.0.10.tar.gz
+```
+
+执行redis安装包中的`Makefile`文件，编译redis源代码。软件编译过程使用标准C库（libc）的内存分配函数。下述命令在安装的redis-7.2.5版本路径中是执行成功了的。此外在该目录下运行`make test`会出现*All tests passed without errors*。
+
+```bash
+make MALLOC=libc
+```
+
+将编译后的redis文件安装到系统目录中。
+
+```bash
+make install
+```
+
+## Redis配置
+在redis的安装目录下打开`redis.conf`文件，追加下述代码：
+
+```bash
+daemonize yes
+# bind 127.0.0.1
+requirepass 123@456
+protected-mode no
+```
+
+**第一行**表示允许redis在后台启动。
+
+**第二行**，默认情况下redis只允许本地连接，将默认地址注释掉后可以允许外网访问本机Redis。
+
+**第三行**表示登录Redis所需的密码。
+
+**第四行**表示关闭保护模式，因为Redis已经在**第三行**设置了密码。
+
+## Redis启动
+执行下述命令启动Redis：
+
+```bash
+redis-server redis.conf
+```
+
+## 进入Redis控制台
+
+```bash
+redis-cli -a 123@456
+```
+
+## 关闭Redis实例
+
+```bash
+redis-cli -p 6379 -a 123@456 shutdown
+```
+
+或直接在控制台输入`exit`也可以关闭redis实例。
+
+
+
+
+
+
+

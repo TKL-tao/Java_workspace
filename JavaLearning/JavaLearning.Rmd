@@ -11,6 +11,52 @@ output:
     highlight: tango
 ---
 
+<style>
+.copy-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #011627;
+  border: none;
+  border-radius: 3px;
+  padding: 5px;
+  cursor: pointer;
+  font-family: 'Times New Roman';
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  // 创建复制到剪贴板的函数
+  function copyToClipboard(str) {
+    const el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
+  // 为每个代码块添加复制按钮
+  document.querySelectorAll('pre code').forEach((block) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      // 复制文本到剪贴板
+      copyToClipboard(block.textContent);
+      // 更新按钮文本为 "Copied"
+      btn.textContent = 'Copied';
+      // 设置两秒后恢复按钮文本
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+      }, 2000); // 2000 毫秒后执行
+    });
+    block.parentNode.appendChild(btn);
+  });
+});
+</script>
+
 ```{r include=FALSE}
 library(knitr)
 library(kableExtra)
@@ -19,6 +65,78 @@ setwd("D:/Java_workspace/JavaLearning/")
 ```
 
 # Data Type
+## String
+```java
+public final class String implements java.io.Serializable, Comparable<String>, CharSequence
+```
+
+- Immutability
+
+`String` 对象一旦被创建就不能被改变，这也意味着任何`String`实例方法的调用都不会改变实例本身。
+
+- String Pool
+
+用相同的字面量创建`String`实例时，会直接返回池中的引用，不会创建新的对象，比如：
+
+```java
+String str1 = "Hello";
+String str2 = "Hello";
+System.out.println(str1 == str2);  // true
+
+String str1 = new String("Hello");
+String str2 = new String("Hello");
+System.out.println(str1 == str2);  //false
+```
+
+### Instance methods
+
+
+
+### Static methods
+- `String.valueOf()`
+
+```
+// 将基本数据类型转化为字符串
+double num = 3.1415;
+String numStr = String.valueOf(num);
+```
+
+- `String.format()`
+
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("格式说明符", "描述"),
+  column2 = c('%s', '字符串'),
+  column3 = c('%d', '十进制整数'),
+  column4 = c('%o', '八进制整数'),
+  column5 = c('%x', '十六进制整数'),
+  column6 = c('%f', '浮点数'),
+  column7 = c('%c', '单个字符'),
+  column8 = c('%b', '布尔值'),
+  column9 = c('%n', '换行符')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+```java
+// 控制浮点数精度（四舍五入）
+String.format("%.2f", 3.14559);  // 3.15
+// 对齐与填充。例如：包含Hello在内一共是10个字符，右对齐
+String.format("|%10s|%-10s|", "Hello", "World");  // 
+```
+
+- `String.join()`
+
+```java
+// 使用指定的分隔符连接多个String
+String str = String.join(", ", "Hello", "World", "Java")
+```
+
+
+
+
+
 
 **String**
 
@@ -35,6 +153,17 @@ public class Main {
     }
 }
 ```
+
+## Integer
+### Static methods
+`Integer.parseInt()`
+
+```java
+\\ 将字符串按照其本身的进制转化为int类型
+Integer.parseInt("1000", 2); \\ 8
+```
+
+`Integer.toBinaryString()`
 
 
 # Java Modifiers

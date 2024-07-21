@@ -65,6 +65,23 @@ setwd("D:/Java_workspace/JavaLearning/")
 ```
 
 # Data Type
+## Primitive data type
+```{r echo=FALSE, warning=FALSE}
+mydf <- data.frame(
+  column1 = c("Data Type", "Size", "Range"),
+  column2 = c('byte', '1 byte', '$-128$ to $127$'),
+  column3 = c('short', '2 bytes', '$-2^{16-1}$ to $2^{16-1}-1$'),
+  column4 = c('int', '4 bytes', '$-2^{32-1}$ to $2^{32-1}-1$'),
+  column5 = c('long', '8 bytes', '$-2^{64-1}$ to $2^{64-1}-1$'),
+  column6 = c('float', '4 bytes', ''),
+  column7 = c('double', '8 bytes', ''),
+  column8 = c('boolean', '1 bit', ''),
+  column9 = c('char', '2 bytes', '')
+)
+kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
+  kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
 ## String
 ```java
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence
@@ -85,23 +102,24 @@ System.out.println(str1 == str2);  // true
 
 String str1 = new String("Hello");
 String str2 = new String("Hello");
-System.out.println(str1 == str2);  //false
+System.out.println(str1 == str2);  // false
 ```
 
-### Instance methods
-
-
-
-### Static methods
+### static methods
 - `String.valueOf()`
 
 ```
 // 将基本数据类型转化为字符串
 double num = 3.1415;
 String numStr = String.valueOf(num);
+// 将char[]类型转化为字符串
+char[] charArr = {'A', 'B', 'C'};
+String charArrString = String.valueOf(charArr);  // ABC
 ```
 
 - `String.format()`
+
+`String.format()`用于创建格式化字符串。
 
 ```{r echo=FALSE, warning=FALSE}
 mydf <- data.frame(
@@ -123,7 +141,11 @@ kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c")
 // 控制浮点数精度（四舍五入）
 String.format("%.2f", 3.14559);  // 3.15
 // 对齐与填充。例如：包含Hello在内一共是10个字符，右对齐
-String.format("|%10s|%-10s|", "Hello", "World");  // 
+String.format("|%10s|%-10s|", "Hello", "World");  // |     Hello|World     |
+// 将十进制数8转化为八进制数10
+String.format("%o", 8);
+// 补0
+String.format("补零: %07.2f", (float) 123);  // 0123.00
 ```
 
 - `String.join()`
@@ -133,37 +155,98 @@ String.format("|%10s|%-10s|", "Hello", "World");  //
 String str = String.join(", ", "Hello", "World", "Java")
 ```
 
+### instance methods
+- `.length()`
 
+Return the length of a `String`.
 
+- `.charAt(int index)`
 
+Return the char at the *index* position.
 
+- `.indexOf(String str)` or `.indexOf(char myChar)`
 
-**String**
+Return the index of the `String` or `char` when it appears at the first time. Return $-1$ when `String` or `char` is illegal.
 
-```{java eval=FALSE, include=TRUE}
-import java.util.Arrays;
+- `.substring(int beginIndex, int endIndex)`
 
-public class Main {
-    public static void main(String[] args) {
+Return a sub-string from the *beginIndex* position to the *endIndex-1* position.
 
-        String myString = "abcdefg";
-        System.out.println(myString.length());  // Show a the length of String data type.
-        char[] myChars = myString.toCharArray();  // Convert a String into a char array.
-        // String.valueOf(myChars) can convert char[] Array into a String.
-    }
-}
-```
+- `.replace(char oldChar, char newChar)`
 
-## Integer
-### Static methods
-`Integer.parseInt()`
+Return a new `String` in which all of the *oldChar* are replaced by *newChar*. 
+
+- `.toLowerCase()`
+
+- `.toUpperCase()`
+
+- `.toCharArray()`
+
+## StringBuilder
+- 可变性：可追加、插入、删除、修改字符。
+
+- 线程不安全：例如在两个线程中同时给一个`StringBuilder`追加元素会导致该`StringBuilder`增加的元素总数小于两个线程中增加元素的总和。
+
+`StringBuilder`在单线程环境中性能较好，多线程环境中不安全。
+
+`StringBuffer`在单线程环境中性能较差，多线程环境中安全。
 
 ```java
-\\ 将字符串按照其本身的进制转化为int类型
-Integer.parseInt("1000", 2); \\ 8
+StringBuilder sb = new StringBuilder("Hello, World");
 ```
 
-`Integer.toBinaryString()`
+### static methods
+
+### instance methods
+- `.length()`
+
+返回长度。
+
+- `.append()`
+
+追加字符串。
+
+- `.insert(int index, String myStr)`
+
+插入字符串。
+
+- `.delete(int beginIndex, int endIndex)`
+
+删除字符串，从*beginIndex*到*endIndex-1*。
+
+- `.deleteChatAt(int index)`
+
+删除指定位置的字符。
+
+- `.toString()`
+
+转化为`String`对象。
+
+
+## Integer
+### static methods
+- `Integer.parseInt()`
+
+```java
+// 将String转化为int
+Integer.parseInt("13245");
+// 将String按照其本身的进制转化为十进制int类型
+Integer.parseInt("1000", 2);  // 8
+```
+
+- `Integer.toString()`
+
+Transfer `int` to `String`.
+
+- `Integer.toBinaryString(int num)`
+
+```java
+// 将int转化为二进制字符串
+Integer.toBinaryString(8);
+```
+
+### instance methods
+
 
 
 # Java Modifiers
@@ -357,6 +440,58 @@ public class PolymorphismExample {
     }
 }
 ```
+
+# Threads
+1. 利用`Runnable`创建子线程。
+
+`Runnable`的定义如下：
+
+```java
+@FunctionalInterface
+public interface Runnable {
+    void run(); 
+}
+```
+
+`Runnable`创建子线程。
+
+```java
+Runnable task = () -> {System.out.println("This is thread 1");};
+Thread thread1 = new Thread(task, "My thread 1");
+thread1.start();  // start the thread1
+
+try {
+    thread1.join();  // stop the main thread and wait for thread1 to complete 
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}  // 要使用try-catch结构或在其所在的方法添加throws InterruptedException
+```
+
+2. 利用`Thread`创建子线程
+
+```java
+public class MyThread extends Thread {
+    public void run() {
+        System.out.println(This is my thread);
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

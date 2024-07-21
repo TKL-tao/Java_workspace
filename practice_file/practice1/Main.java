@@ -6,22 +6,27 @@ import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
 
-public class Main {
-    public static void main(String[] args) {
+public class Main extends Thread {
+    public static void main(String[] args) throws InterruptedException {
+        Runnable task = () -> {System.out.println("This is thread 1");};
+        Thread thread1 = new Thread(task, "My thread 1");
+        Main thread = new Main();
+        thread.start();
+        thread1.start();
+        for (int i=0; i<10; i++) {
+            System.out.println("Outside");
+            Thread.sleep(10);
+        }
+    }
 
-        Animal animal = new Animal();
-        System.out.println(animal.getCategory());
-
-        Animal dog = new Dog();
-        System.out.println(dog.getCategory());
-        // System.out.println(dog.dogSound);
-
-        Dog myDog = new Dog();
-        System.out.println(myDog.dogSound);
-
-
-        char[] myChars = {'a', 'b', 'c', 'd'};
-        String myString = String.valueOf(myChars);
-        System.out.println(myString);
+    public void run() {
+        for (int i=0; i<10; i++) {
+            System.out.println("Inside");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

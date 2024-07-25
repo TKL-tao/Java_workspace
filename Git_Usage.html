@@ -7,7 +7,7 @@
 
         <meta name="author" content="Tao Zou" />
     
-        <meta name="date" content="2024-04-27" />
+        <meta name="date" content="2024-07-25" />
     
     <title>Git_Usage</title>
 
@@ -1845,7 +1845,7 @@ margin-left: 0 !important;
       <p class="authors">
            <span class="glyphicon glyphicon-user"></span> Tao Zou
       </p>
-         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-04-27</p>
+         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-07-25</p>
            
 
    
@@ -1949,8 +1949,13 @@ link.</p>
 ## git switch -c dev</code></pre>
 <p>Or I can use <code>git branch dev</code> to create a branch and use
 <code>git checkout dev</code> to switch to the branch.</p>
-<p>Use <code>git branch</code> to show all branches.</p>
-<p>Using the code below to merge current branch with the specified
+<p>Use <code>git branch</code> to show all local branches. The branch
+with * is the current branch.</p>
+<p>Use <code>git branch -r</code> to show all remote branches, which
+begin with “origin/”.</p>
+<p>Use <code>git branch -a</code> to show all local and remote
+branches.</p>
+<p>Using the code below to merge specified branch with the current
 branch:</p>
 <pre class="bash"><code>git merge specified_branch_name</code></pre>
 <p>Using the code below to delete a branch:</p>

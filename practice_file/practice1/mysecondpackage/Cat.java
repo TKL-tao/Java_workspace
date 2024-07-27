@@ -2,11 +2,13 @@ package mysecondpackage;
 
 import myfirstpackage.*;
 
-public class Cat extends Animal{
+public class Cat extends LittleCat{
     
-    public String name = "my cat";
+    String name = "my cat";
 
-    public Cat() {
-        this.category = "ss";
-    }
+    LittleCat littleCat = new LittleCat();
+
+    // public Cat() {
+    //     this.category = "ss";
+    // }
 }

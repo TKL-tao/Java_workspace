@@ -7,3 +7,5 @@
 [https://tkl-tao.github.io/Java_workspace/RedisLearning/RedisLearning.html](https://tkl-tao.github.io/Java_workspace/RedisLearning/RedisLearning.html)
 
 [https://tkl-tao.github.io/Java_workspace/SQLLearning/SQLLearning.html](https://tkl-tao.github.io/Java_workspace/SQLLearning/SQLLearning.html)
+
+[https://tkl-tao.github.io/Java_workspace/DataStructure.html](https://tkl-tao.github.io/Java_workspace/DataStructure.html)

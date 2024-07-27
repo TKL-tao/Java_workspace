@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Arrays;
 import java.util.List;
 
+import mysecondpackage.LittleCat;
+
 public class Main extends Thread {
     public static void main(String[] args) throws InterruptedException {
         Runnable task = () -> {System.out.println("This is thread 1");};

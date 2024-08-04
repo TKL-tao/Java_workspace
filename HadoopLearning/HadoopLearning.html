@@ -7,7 +7,7 @@
 
         <meta name="author" content="Tao Zou" />
     
-        <meta name="date" content="2024-07-29" />
+        <meta name="date" content="2024-08-04" />
     
     <title>Hadoop Learning</title>
 
@@ -1826,6 +1826,11 @@ margin-left: 0 !important;
             <ul>
             <li><a href="#hadoop重要文件结构" id="toc-hadoop重要文件结构">Hadoop重要文件结构</a></li>
             <li><a href="#hadoop本地模式" id="toc-hadoop本地模式">Hadoop本地模式</a></li>
+            <li><a href="#hadoop分布式模式" id="toc-hadoop分布式模式">Hadoop分布式模式</a></li>
+            </ul></li>
+            <li><a href="#其他问题的解决方案" id="toc-其他问题的解决方案">其他问题的解决方案</a>
+            <ul>
+            <li><a href="#vmware虚拟机间歇性宕机" id="toc-vmware虚拟机间歇性宕机">VMWare虚拟机间歇性宕机</a></li>
             </ul></li>
             </ul>
           </div>
@@ -1841,7 +1846,7 @@ margin-left: 0 !important;
       <p class="authors">
            <span class="glyphicon glyphicon-user"></span> Tao Zou
       </p>
-         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-07-29</p>
+         <p class="date"><span class="glyphicon glyphicon-calendar"></span> 2024-08-04</p>
            
 
    
@@ -1996,6 +2001,8 @@ export PATH=$PATH:$JAVA_HOME/bin</code></pre>
 <p>刷新</p>
 <pre class="bash"><code>source /etc/profile
 java -version</code></pre>
+<pre class="bash"><code># 查看Ubantu机环境变量
+echo $PATH</code></pre>
 </div>
 <div id="安装hadoop" class="section level2">
 <h2>安装Hadoop</h2>
@@ -2032,6 +2039,30 @@ cc aa</code></pre>
 <p>运行下述命令（我在hadoop-3.3.6目录下运行的）：</p>
 <pre class="bash"><code>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.6.jar wordcount myinput/word.txt myoutput</code></pre>
 <p>输出文件会被保存在新创建的文件夹myoutput中，myoutput文件夹须由hadoop创建，该文件夹不能预先存在。</p>
+</div>
+<div id="hadoop分布式模式" class="section level2">
+<h2>Hadoop分布式模式</h2>
+<div id="复制文件到其他节点" class="section level3">
+<h3>复制文件到其他节点</h3>
+<pre class="bash"><code># 从hadoop102拷贝jdk-22.0.1到hadoop103相同目录下
+scp -r /home/zt/development/JDK17/jdk-22.0.1 zt@hadoop103:/home/zt/development/JDK17</code></pre>
+<pre class="bash"><code># 从hadoop103拉取hadoop102的hadoop-3.3.6
+scp -r zt@hadoop102:/home/zt/development/Hadoop336/hadoop-3.3.6 ./</code></pre>
+<pre class="bash"><code># 在hadoop103执行命令将hadoop102的jdk-22.0.1和hadoop-3.3.6拷贝到hadoop104上
+scp -r zt@hadoop102:/home/zt/development/* zt@hadoop104:/home/zt/development</code></pre>
+<p>运行上述命令时报错了，显示<code>连接zt@hadoop104 denied</code>。但是我从<code>zt@hadoop103</code>上传送本节点的文件到<code>zt@hadoop104</code>却是没有任何问题的。</p>
+</div>
+<div id="同步文件到其他节点" class="section level3">
+<h3>同步文件到其他节点</h3>
+<pre class="bash"><code>rsync -av /home/zt/development/Hadoop336/hadoop-3.3.6 zt@hadoop104:/home/zt/development/hadoop-3.3.6</code></pre>
+</div>
+</div>
+</div>
+<div id="其他问题的解决方案" class="section level1">
+<h1>其他问题的解决方案</h1>
+<div id="vmware虚拟机间歇性宕机" class="section level2">
+<h2>VMWare虚拟机间歇性宕机</h2>
+<p>在VMWare主界面，<code>编辑-&gt;首选项-&gt;内存</code>，将预留内存调到最大。</p>
 </div>
 </div>
 </div>

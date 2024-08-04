@@ -195,6 +195,11 @@ source /etc/profile
 java -version
 ```
 
+```bash
+# 查看Ubantu机环境变量
+echo $PATH
+```
+
 ## 安装Hadoop
 参照安装JDK，解压->打开`my_env.sh`，编写环境：
 
@@ -253,6 +258,39 @@ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.6.jar wordcount 
 ```
 
 输出文件会被保存在新创建的文件夹myoutput中，myoutput文件夹须由hadoop创建，该文件夹不能预先存在。
+
+## Hadoop分布式模式
+### 复制文件到其他节点
+
+```{bash eval=FALSE, include=TRUE}
+# 从hadoop102拷贝jdk-22.0.1到hadoop103相同目录下
+scp -r /home/zt/development/JDK17/jdk-22.0.1 zt@hadoop103:/home/zt/development/JDK17
+```
+
+```{bash eval=FALSE, include=TRUE}
+# 从hadoop103拉取hadoop102的hadoop-3.3.6
+scp -r zt@hadoop102:/home/zt/development/Hadoop336/hadoop-3.3.6 ./
+```
+
+```{bash eval=FALSE, include=TRUE}
+# 在hadoop103执行命令将hadoop102的jdk-22.0.1和hadoop-3.3.6拷贝到hadoop104上
+scp -r zt@hadoop102:/home/zt/development/* zt@hadoop104:/home/zt/development
+```
+
+运行上述命令时报错了，显示`连接zt@hadoop104 denied`。但是我从`zt@hadoop103`上传送本节点的文件到`zt@hadoop104`却是没有任何问题的。
+
+### 同步文件到其他节点
+
+```{bash eval=FALSE, include=TRUE}
+rsync -av /home/zt/development/Hadoop336/hadoop-3.3.6 zt@hadoop104:/home/zt/development/hadoop-3.3.6
+```
+
+
+
+# 其他问题的解决方案
+## VMWare虚拟机间歇性宕机
+在VMWare主界面，`编辑->首选项->内存`，将预留内存调到最大。
+
 
 
 

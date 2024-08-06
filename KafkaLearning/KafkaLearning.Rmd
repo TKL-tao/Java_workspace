@@ -1,0 +1,151 @@
+---
+title: "Kafka Learning"
+author: "Tao Zou"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+<style>
+.copy-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #011627;
+  border: none;
+  border-radius: 3px;
+  padding: 5px;
+  cursor: pointer;
+  font-family: 'Times New Roman';
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  // 创建复制到剪贴板的函数
+  function copyToClipboard(str) {
+    const el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
+  // 为每个代码块添加复制按钮
+  document.querySelectorAll('pre code').forEach((block) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      // 复制文本到剪贴板
+      copyToClipboard(block.textContent);
+      // 更新按钮文本为 "Copied"
+      btn.textContent = 'Copied';
+      // 设置两秒后恢复按钮文本
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+      }, 2000); // 2000 毫秒后执行
+    });
+    block.parentNode.appendChild(btn);
+  });
+});
+</script>
+
+```{r setup, include=FALSE}
+setwd("D:/Java_workspace/KafkaLearning")
+knitr::opts_chunk$set(echo = TRUE)
+options(warn = -1)
+```
+
+
+# ZooKeeper安装与配置
+## 配置ZooKeeper
+### 添加环境变量
+在`/etc/profile.d/my_env.sh`中添加下述环境变量。
+```{bash eval=FALSE, include=TRUE}
+export ZOOKEEPER_HOME=/home/zt/development/ZooKeeper/apache-zookeeper-3.8.4-bin
+export PATH=$PATH:$ZOOKEEPER_HOME/bin
+```
+
+### 修改zoo.cfg
+```{bash eval=FALSE, include=TRUE}
+cd $ZOOKEEPER_HOME/conf
+cp zoo_sample.cfg zoo.cfg
+```
+
+内容修改如下：
+
+```cfg
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=/tmp/zookeeper/data
+dataLogDir=/tmp/zookeeper/log
+clientPort=2181
+
+server.102=192.168.10.102:2888:3888
+server.103=192.168.10.102:2888:3888
+```
+
+`102`，`103`等代表服务器编号。`2888`表示服务器与集群中得leader服务器交换信息的端口。`3888`表示选举时服务器相互通信的端口。
+
+创建系统目录。接着在`/tmp/zookeeper/data`下输入`echo "102" myid`，创建一个myid文件并写入102，102代表服务器编号。对于第二台服务器编号要设置得不同，比如可以设置103为编号。
+
+```{bash eval=FALSE, include=TRUE}
+mkdir -p /tmp/zookeeper/data
+mkdir -p /tmp/zookeeper/log
+
+cd /tmp/zookeeper/data 
+echo "102" > myid
+```
+
+## 启动、终止ZooKeeper服务
+在上述ZooKeeper集群配置好了以后就可以执行下述命令在每一台服务器上必须都启动zookeeper，然后执行`zkServer.sh status`可以查看zookeeper各个服务器得zookeeper得状态。
+
+```{bash eval=FALSE, include=TRUE}
+zkServer.sh start
+zkServer.sh stop
+```
+
+# Kafka配置
+## 配置环境变量
+```{bash eval=FALSE, include=TRUE}
+#KAFKA_HOME
+export KAFKA_HOME=/home/zt/development/Kafka/kafka_2.12-3.8.0
+export PATH=$PATH:$KAFKA_HOME/bin
+```
+
+## 修改配置文件
+```{bash eval=FALSE, include=TRUE}
+sudo vim $KAFKA_HOME/config/server.properties
+```
+
+修改`$KAFKA_HOME/config/server.properties`下述几个对应的参数：
+
+```{bash eval=FALSE, include=TRUE}
+# 每个服务器上的broker.id要设置得不同
+broker.id=0
+listeners=PLAINTEXT://192.168.10.102:9092
+log.dirs=/tmp/kafaka-logs
+zookeeper.connect=192.168.10.102:2181,192.168.10.103:2181
+```
+
+## 启动Kafka
+```{bash eval=FALSE, include=TRUE}
+cd $KAFKA_HOME
+bin/kafka-server-start.sh config/server.properties
+# 下属为后台启动kafka的命令
+bin/kafka-server-start.sh -daemon config/server.properties
+```
+
+若上述命令报错，可`su root`进入root用户然后执行该命令。
+
+
+
+

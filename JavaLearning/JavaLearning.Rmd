@@ -25,38 +25,6 @@ output:
 }
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', (event) => {
-  // 创建复制到剪贴板的函数
-  function copyToClipboard(str) {
-    const el = document.createElement('textarea');
-    el.value = str;
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-  };
-
-  // 为每个代码块添加复制按钮
-  document.querySelectorAll('pre code').forEach((block) => {
-    const btn = document.createElement('button');
-    btn.className = 'copy-btn';
-    btn.textContent = 'Copy';
-    btn.addEventListener('click', () => {
-      // 复制文本到剪贴板
-      copyToClipboard(block.textContent);
-      // 更新按钮文本为 "Copied"
-      btn.textContent = 'Copied';
-      // 设置两秒后恢复按钮文本
-      setTimeout(() => {
-        btn.textContent = 'Copy';
-      }, 2000); // 2000 毫秒后执行
-    });
-    block.parentNode.appendChild(btn);
-  });
-});
-</script>
-
 ```{r include=FALSE}
 library(knitr)
 library(kableExtra)
@@ -80,6 +48,28 @@ mydf <- data.frame(
 )
 kable(t(mydf), "html", booktabs = T, col.names = NULL, row.names=F, align = "c") %>%
   kable_styling(bootstrap_options = 'bordered', latex_options = "striped", full_width = F)
+```
+
+## Array
+`int[]`, `String[]`
+
+```java
+// 数组的创建
+String[] stringArr = new String[size];  // 创建一个固定大小的String数组
+String[] stringArr = {"abc", "ABC"};  // 创建数组的同时初始化数组中元素
+int[][] intArr = {{1, 2, 3}, {4, 5, 6}};
+
+// 数组的拷贝
+String[] newStringArr = stringArr;  // 这是共享地址
+String[] newStringArr = Arrays.copyOf(stringArr, stringArr.length);  // 重新创建一个新的数组实例，其中第二个参数为新数组长度。
+
+// 数组排序
+int[] intArr = {4, 1, 5, 6};
+Arrays.sort(intArr);  // Arrays.sort()方法基于快速排序。
+
+// 打印数组
+System.out.println(Arrays.deepToString(intArr));  // [[1, 2, 3], [4, 5, 6]]
+System.out.println(Arrays.toString(stringArr));  // [abc, ABC]
 ```
 
 ## String
@@ -472,13 +462,40 @@ try {
 ```java
 public class MyThread extends Thread {
     public void run() {
-        System.out.println(This is my thread);
+        System.out.println("This is my thread");
     }
 }
 ```
 
+### 两种创建线程的方法的示例
 
+```java
+public class Main extends Thread {
+    public static void main(String[] args) throws InterruptedException {
+        Runnable task = () -> {System.out.println("This is thread 1");};  // 这是thread1的run方法
+        Thread thread1 = new Thread(task, "My thread 1");
+        Main thread2 = new Main();
+        thread2.start();
+        thread1.start();
+        for (int i=0; i<10; i++) {
+            System.out.println("Outside");
+            Thread.sleep(10);
+        }
+    }
 
+    // 这是thread2的run方法
+    public void run() {
+        for (int i=0; i<10; i++) {
+            System.out.println("Inside");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
 
 
 

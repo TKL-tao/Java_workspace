@@ -1,0 +1,24 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+
+```{r}
+#使用reticulate包中的use_python函数
+library(reticulate)
+#py_available()#系统已安装Python
+use_python("D:/Anaconda/envs/tf1/python.exe")
+use_condaenv("D:/Anaconda/envs/tf1")
+py_config()
+```
+
+# 尝试使用Python
+```{python}
+import numpy as np
+import tensorflow as tf
+import pandas as pd
+a = np.array([1,2,3])
+print(a)
+```
+

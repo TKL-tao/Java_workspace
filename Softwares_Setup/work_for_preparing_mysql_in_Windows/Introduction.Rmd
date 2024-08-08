@@ -1,0 +1,110 @@
+---
+title: "Introduction"
+date: "`r Sys.Date()`"
+author: "邹涛"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+```{r include=FALSE}
+setwd("D:/R_workspace/work_for_preparing_mysql_in_Windows/")
+```
+
+## 下载mysql
+
+网址：https://dev.mysql.com/downloads/mysql/5.5.html#downloads
+
+将压缩包解压
+
+## 设置环境变量
+
+将解压得到的文件夹中的bin路径配置到系统path环境变量中。
+
+## 创建my.ini文件
+
+创建my.ini文件在sql的解压文件包文件夹下，其内容为：（注意其中的路径修改）
+
+[mysql]
+
+\# 设置mysql客户端默认字符集
+
+default-character-set=utf8
+
+
+[mysqld]
+
+\# 设置3306端口
+
+port = 3306
+
+\# 设置mysql的安装目录
+
+basedir = D:\\MySQL\\mysql-8.0.32-winx64
+
+\# 设置mysql数据库的数据的存放目录
+
+datadir = D:\\MySQL\\mysql-8.0.32-winx64\\data
+
+\# 允许最大连接数
+
+max_connections=20
+
+\# 服务端使用的字符集默认为8比特编码的latin1字符集
+
+character-set-server=utf8
+
+\# 创建新表时将使用的默认存储引擎
+
+default-storage-engine=INNODB
+
+\# 创建模式
+
+sql_mode = NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+## 初始化sql
+
+使用管理员打开cmd，输入：mysql --initialize
+
+## 用户名和密码
+
+用户名和密码储存在新生成的data文件夹下的.err文件中。
+
+## 启动mysql
+
+管理员打开cmd，路径指向到bin文件，然后输入：net start mysql
+
+# Ubantu下MySQL安装
+## 安装
+```{bash eval=FALSE, include=TRUE}
+sudo apt update
+sudo apt install mysql-server
+mysql --version  # 查看版本
+service mysql status  # 查看服务状态
+```
+
+## 配置用户密码
+```{sql eval=FALSE, include=TRUE}
+use mysql;
+SELECT user, host, plugin FROM user;
+ALTER USER 'root'@'localhost' identified with mysql_native_password by '123';
+FLUSH PRIVILEGES;
+```
+
+之后便可以通过下述代码进入数据库。
+```{bash eval=FALSE, include=TRUE}
+mysql -uroot -p  # 按回车后输入密码123
+```
+
+
+
+

@@ -1,0 +1,36 @@
+---
+title: "安装R所必要经过的步骤"
+author: "邹涛"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r include=FALSE}
+setwd("D:\\R_workspace\\work_for_preparing_R_in_Windows")
+```
+
+# R下载
+R-4.2.0下在地址：https://cran.r-project.org/bin/windows/base/
+
+# Rstudio下载
+Rstudio官网：https://www.rstudio.com/
+
+Rstudio与R存放在同一个根目录下。点击Rstudio出现提示，连接到R。
+
+# Rtools下载
+Rtools下载地址：https://cran.r-project.org/bin/windows/Rtools/
+
+打开Rstudio，输入并运行：writeLines('PATH="\${RTOOLS40_HOME}\\usr\\bin;\${PATH}"', con = "~/.Renviron")
+
+重启Rstudio，输入并运行：Sys.which("make")
+
+测试，输入并运行：install.packages("jsonlite", type = "source")
+
+# 其他配置
+在电脑用户环境变量中新建变量名：R_USER，路径为：D:\\R-4.2.0 。

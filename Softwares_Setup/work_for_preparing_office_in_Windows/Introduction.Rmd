@@ -1,0 +1,29 @@
+---
+title: "Windows10下安装office正版的步骤"
+date: "`r Sys.Date()`"
+author: "邹涛"
+output:
+  rmdformats::readthedown:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+```{r include=FALSE}
+setwd("D:/R_workspace/work_for_preparing_R_in_Windows")
+```
+
+在自己的百度网盘上下载：
+
+文件1：Office Tool （可直接运行）
+
+文件2：Office Tool的的附带工具windowsdesktop-runtime-6.0.13-win-x86
+
+运行Office Tool先“移除”电脑中原有office，然后选择购买的版本开始部署。

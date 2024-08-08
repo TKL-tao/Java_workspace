@@ -1,0 +1,162 @@
+---
+title: "Software Setup"
+author: "Tao Zou"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::downcute:
+    self_contained: true
+    thumbnails: true
+    lightbox: true
+    gallery: false
+    highlight: tango
+---
+
+<style>
+.copy-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #011627;
+  border: none;
+  border-radius: 3px;
+  padding: 5px;
+  cursor: pointer;
+  font-family: 'Times New Roman';
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  // 创建复制到剪贴板的函数
+  function copyToClipboard(str) {
+    const el = document.createElement('textarea');
+    el.value = str;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+  };
+
+  // 为每个代码块添加复制按钮
+  document.querySelectorAll('pre code').forEach((block) => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.addEventListener('click', () => {
+      // 复制文本到剪贴板
+      copyToClipboard(block.textContent);
+      // 更新按钮文本为 "Copied"
+      btn.textContent = 'Copied';
+      // 设置两秒后恢复按钮文本
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+      }, 2000); // 2000 毫秒后执行
+    });
+    block.parentNode.appendChild(btn);
+  });
+});
+</script>
+
+```{r setup, include=FALSE}
+setwd("D:/python_work/python_workspace/Softwares_Setup")
+knitr::opts_chunk$set(include = FALSE)
+```
+
+# Anaconda in Windows and Linux
+**create an environment**. Open Anaconda Prompt:
+
+```{bash eval=FALSE, include=TRUE}
+conda create --name myenv python=3.8
+```
+
+**activate an enironment**. Open Anaconda Prompt:
+
+For Windows,
+
+```{bash eval=FALSE, include=TRUE}
+conda activate myenv 
+```
+
+For Linux,
+
+```{bash eval=FALSE, include=TRUE}
+source activate myenv 
+```
+
+**Delete an environment**
+
+```{bash eval=FALSE, include=TRUE}
+conda remove --name myenv --all
+```
+
+# Latex Setup in Windows
+Open [TeX Live](https://www.tug.org/texlive/acquire-netinstall.html) and click **install-tl-windows.exe**. After run the .exe file, is will be installed in `C:\Users\0.0\AppData\Local\Temp\nssF86E.tmp` automatically.
+
+Then there will have another installation of **textlive** ($8-9\text{GB}$), and I can choose the installation path at this time. Then add the path of **textlive**, for example `D:\TexLive\texlive`, to system path.
+
+Then install extension **LaTeX Workshop** in VSCode, and open the extension's settings.json file, and modify the code as following.
+
+```{bash eval=FALSE, include=TRUE}
+...
+{
+  "name": "pdflatex",
+  "command": "D:\\TexLive\\texlive\\2024\\bin\\windows\\pdflatex.exe",
+  "args": [
+  "-synctex=1",
+  "-interaction=nonstopmode",
+  "-file-line-error",
+  "%DOC%"
+  ],
+  "env": {}
+},
+...
+```
+
+Finally, I can compile .tex file in VSCode.
+
+# Download Maven
+1. Download maven from [https://maven.apache.org/download.cgi](https://maven.apache.org/download.cgi). 
+
+2. 将压缩包解压到某目录如`D:\maven\apache-maven-3.9.8`。
+
+3. 添加系统变量，变量名`MAVEN_HOME`，变量值`D:\maven\apache-maven-3.9.8`。
+
+4. 在系统Path中新建`%MAVEN_HOME%\bin`。
+
+5. 命令行运行`mvn -v`检测是否安装成功。
+
+6. 配置镜像，在maven安装目录下打开`conf\settings.xml`，找到`<mirrors></mirrors>`栏目，在其中添加下述代码：
+
+```bash
+<mirror>
+  <id>alimaven</id>
+  <mirrorOf>central</mirrorOf>
+  <name>Aliyun Maven</name>
+  <url>https://maven.aliyun.com/repository/public</url>
+</mirror>
+<mirror>
+  <id>huaweicloud</id>
+  <mirrorOf>central</mirrorOf>
+  <name>Huawei Cloud Maven</name>
+  <url>https://repo.huaweicloud.com/repository/maven/</url>
+</mirror>
+```
+
+使用maven新建项目：
+
+```bash
+mkdir my-maven-project
+cd my-maven-project
+mvn archetype:generate -DgroupId=com.example -DartifactId=my-maven-project -DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+```
+
+
+
+
+
+
+
+
+
+
+
